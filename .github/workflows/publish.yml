@@ -34,8 +34,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Anahtar kontrolü (haftalık)
-        if: github.event.schedule == '17 6 * * 1'
+      - name: Anahtar kontrolü (haftalık + elle çalıştırmada)
+        if: github.event.schedule == '17 6 * * 1' || github.event_name == 'workflow_dispatch'
         run: node scripts/check-token.mjs
 
       - name: Zamanı gelen onaylı gönderileri yayınla
