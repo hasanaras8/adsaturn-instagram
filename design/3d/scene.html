@@ -1,0 +1,107 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#050505;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const q = new URLSearchParams(location.search);
+const num = (k, d) => q.has(k) ? parseFloat(q.get(k)) : d;
+const W = num('w', 2160), H = num('h', 2700);
+const P = {
+  camDist: num('dist', 6.2), camY: num('camy', 0.9), camX: num('camx', 0),
+  offX: num('offx', 0), offY: num('offy', -0.55),         // planet position in frame (view offset, fraction of height)
+  tiltX: num('tiltx', 1.22), tiltZ: num('tiltz', -0.32), spin: num('spin', 0.4),
+  ringR: num('ringr', 1.95), gapStart: num('gap0', 4.3), gapLen: num('gapl', 0.55),
+  ring2: num('ring2', 1), bloom: num('bloom', 0.55), glow: num('glow', 1.25), fov: num('fov', 30), key: num('key', 1)
+};
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.0;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x050505);
+const camera = new THREE.PerspectiveCamera(P.fov, W / H, 0.1, 100);
+camera.position.set(P.camX, P.camY, P.camDist); camera.lookAt(0, 0, 0);
+camera.setViewOffset(W, H, -P.offX * W, -P.offY * H, W, H);
+
+// procedural surface: banded fbm noise (gas-giant feel, very subtle)
+function noiseTex(size = 1024) {
+  const c = document.createElement('canvas'); c.width = size; c.height = size / 2;
+  const g = c.getContext('2d'); const img = g.createImageData(c.width, c.height);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const grid = Array.from({ length: 64 }, () => Array.from({ length: 64 }, rnd));
+  const sm = t => t * t * (3 - 2 * t);
+  const vn = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    const a = grid[yi & 63][xi & 63], b = grid[yi & 63][(xi + 1) & 63], c2 = grid[(yi + 1) & 63][xi & 63], d = grid[(yi + 1) & 63][(xi + 1) & 63];
+    return a + (b - a) * sm(xf) + (c2 - a) * sm(yf) + (a - b - c2 + d) * sm(xf) * sm(yf); };
+  for (let y = 0; y < c.height; y++) for (let x = 0; x < c.width; x++) {
+    let v = 0, amp = .5, f = 1; for (let o = 0; o < 5; o++) { v += amp * vn(x / c.width * 6 * f, y / c.height * 40 * f); amp *= .5; f *= 2; }
+    const band = 0.5 + 0.5 * Math.sin(y / c.height * 26 + v * 3);
+    const val = Math.floor(18 + 22 * (0.6 * v + 0.4 * band));
+    const i = (y * c.width + x) * 4; img.data[i] = val; img.data[i + 1] = val; img.data[i + 2] = val + 2; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const tex = noiseTex();
+const planet = new THREE.Mesh(new THREE.SphereGeometry(1, 256, 256),
+  new THREE.MeshStandardMaterial({ map: tex, roughness: 0.78, metalness: 0.15, bumpMap: tex, bumpScale: 0.02 }));
+planet.rotation.z = -0.25;
+scene.add(planet);
+
+// warm fresnel rim glow
+const rim = new THREE.Mesh(new THREE.SphereGeometry(1.012, 128, 128), new THREE.ShaderMaterial({
+  transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+  uniforms: { col: { value: new THREE.Color(0xffa04a) }, ldir: { value: new THREE.Vector3(-0.8, 0.55, -0.35).normalize() } },
+  vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vW;
+    void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.); vV=normalize(-mv.xyz);
+    vW=normalize((modelMatrix*vec4(normal,0.)).xyz); gl_Position=projectionMatrix*mv; }`,
+  fragmentShader: `uniform vec3 col; uniform vec3 ldir; varying vec3 vN; varying vec3 vV; varying vec3 vW;
+    void main(){ float f=pow(1.-max(dot(vN,vV),0.),3.2); float side=smoothstep(-0.2,0.9,dot(vW,ldir));
+    gl_FragColor=vec4(col*f*side*1.35,f*side); }`
+}));
+scene.add(rim);
+
+// lights: strong back-left key for crescent, faint cool fill
+const key = new THREE.DirectionalLight(0xffc89a, 3.2 * P.key); key.position.set(-6, 3.5, -3); scene.add(key);
+const fill = new THREE.DirectionalLight(0x8aa0b8, 0.18); fill.position.set(4, -1, 5); scene.add(fill);
+scene.add(new THREE.AmbientLight(0xffffff, 0.02));
+
+// broken orbit ring(s)
+function arc(r, a0, a1, w) {
+  const pts = []; const n = 600;
+  for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; pts.push(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r)); }
+  return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 1200, w, 12, false),
+    new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffb15c).multiplyScalar(P.glow), toneMapped: false }));
+}
+const ringGroup = new THREE.Group();
+const g0 = P.gapStart, gl = P.gapLen;
+ringGroup.add(arc(P.ringR, g0 + gl, g0 + Math.PI * 2, 0.0105));
+if (P.ring2) { // faint second orbit for depth
+  const m = arc(P.ringR * 1.32, g0 + 1.2, g0 + Math.PI * 2 - 0.2, 0.0035);
+  m.material.color = new THREE.Color(0xf2f0eb).multiplyScalar(0.55); ringGroup.add(m);
+}
+ringGroup.rotation.set(P.tiltX, P.spin, P.tiltZ);
+scene.add(ringGroup);
+
+// sparse dust
+const dust = new THREE.BufferGeometry(); const dp = [];
+let s = 3; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+for (let i = 0; i < 260; i++) dp.push((r() - .5) * 30, (r() - .5) * 30, -6 - r() * 20);
+dust.setAttribute('position', new THREE.Float32BufferAttribute(dp, 3));
+scene.add(new THREE.Points(dust, new THREE.PointsMaterial({ color: 0x9a968f, size: 0.025, sizeAttenuation: true, transparent: true, opacity: .6 })));
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), P.bloom, 0.4, 0.8));
+composer.addPass(new OutputPass());
+composer.render();
+document.title = 'READY';
+</script></body></html>
