@@ -23,6 +23,8 @@ const VER = process.env.GRAPH_VERSION || "v23.0";
 const IG = process.env.IG_USER_ID;
 const TOKEN = process.env.IG_ACCESS_TOKEN;
 const NOW = process.env.NOW ? new Date(process.env.NOW) : new Date();
+const TH_TOKEN = process.env.THREADS_ACCESS_TOKEN; // tanımlıysa her gönderi Threads'e de gider
+const TH_HOST = "https://graph.threads.net/v1.0";
 const MAX_PER_RUN = Math.max(1, Math.min(15, parseInt(process.env.MAX_PER_RUN || '1', 10) || 1)); // varsayılan 1: yanlışlıkla toplu paylaşımı önler
 
 const repo = process.env.GITHUB_REPOSITORY || "OWNER/REPO";
@@ -93,7 +95,7 @@ function validate(p) {
   return errs;
 }
 
-const urlFor = (p, f) => `${BASE}/queue/${encodeURIComponent(p.id)}/${encodeURIComponent(f)}`;
+const urlFor = (p, f) => `${BASE}/${p.folder || "queue"}/${encodeURIComponent(p.id)}/${encodeURIComponent(f)}`;
 const isVideo = (f) => [".mp4", ".mov"].includes(path.extname(f).toLowerCase());
 
 async function publish(p) {
@@ -123,6 +125,69 @@ async function publish(p) {
   const pub = await api("POST", `${IG}/media_publish`, { creation_id: creation.id });
   let permalink = null;
   try { permalink = (await api("GET", pub.id, { fields: "permalink" })).permalink; } catch {}
+  return { media_id: pub.id, permalink };
+}
+
+// ---------- Threads ----------
+async function th(method, endpoint, params = {}) {
+  const body = new URLSearchParams({ ...params, access_token: TH_TOKEN });
+  const url = `${TH_HOST}/${endpoint}`;
+  const res = method === "GET" ? await fetch(url + "?" + body) : await fetch(url, { method, body });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.error) {
+    const e = json.error || {};
+    throw new Error(`Threads ${endpoint}: ${e.message || res.status} (code ${e.code ?? "-"})`);
+  }
+  return json;
+}
+
+async function thWait(id) {
+  for (let i = 0; i < 30; i++) {
+    const { status, error_message } = await th("GET", id, { fields: "status,error_message" });
+    if (status === "FINISHED") return;
+    if (status === "ERROR" || status === "EXPIRED") throw new Error(`Threads konteyner hatası: ${error_message || status}`);
+    await sleep(10000);
+  }
+  throw new Error("Threads konteyneri zamanında hazır olmadı");
+}
+
+// Threads metni en fazla 500 karakter. post.json'da threads_text varsa o kullanılır;
+// yoksa Instagram metninin ilk paragrafı + adsaturn.com (hashtag'ler atılır).
+export function threadsText(m) {
+  if (m.threads_text) return m.threads_text.slice(0, 500);
+  const cap = (m.caption || "").replace(/(^|\s)#[^\s#]+/g, "").trim();
+  const paras = cap.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
+  const tail = "\n\nadsaturn.com";
+  let out = "";
+  for (const para of paras) {
+    const next = out ? out + "\n\n" + para : para;
+    if ((next + tail).length > 500) break;
+    out = next;
+  }
+  if (!out) out = (paras[0] || "").slice(0, 500 - tail.length - 1) + "…";
+  return out.includes("adsaturn.com") ? out : out + tail;
+}
+
+export async function publishThreads(p) {
+  const m = p.meta;
+  const text = threadsText(m);
+  let creation;
+  if (m.type === "carousel") {
+    const children = [];
+    for (const f of m.media) children.push((await th("POST", "me/threads", { media_type: "IMAGE", image_url: urlFor(p, f), is_carousel_item: "true" })).id);
+    for (const c of children) await thWait(c);
+    creation = await th("POST", "me/threads", { media_type: "CAROUSEL", children: children.join(","), text });
+  } else if (m.type === "image") {
+    creation = await th("POST", "me/threads", { media_type: "IMAGE", image_url: urlFor(p, m.media[0]), text, ...(m.alt_text ? { alt_text: m.alt_text } : {}) });
+  } else if (m.type === "reel") {
+    creation = await th("POST", "me/threads", { media_type: "VIDEO", video_url: urlFor(p, m.media[0]), text });
+  } else {
+    return { skipped: `Threads'te ${m.type} desteklenmiyor` };
+  }
+  await thWait(creation.id);
+  const pub = await th("POST", "me/threads_publish", { creation_id: creation.id });
+  let permalink = null;
+  try { permalink = (await th("GET", pub.id, { fields: "permalink" })).permalink; } catch {}
   return { media_id: pub.id, permalink };
 }
 
@@ -168,8 +233,18 @@ async function main() {
     try {
       log(`🚀 ${tag} yayınlanıyor…`);
       const result = await publish(p);
+      log(`✅ ${tag} Instagram'da yayınlandı: ${result.permalink || result.media_id}`);
+      if (TH_TOKEN && m.threads !== false) {
+        try {
+          result.threads = await publishThreads(p);
+          log(`🧵 ${tag} Threads: ${result.threads.permalink || result.threads.media_id || result.threads.skipped}`);
+        } catch (e) {
+          result.threads = { error: e.message };
+          log(`❌ ${tag} Threads başarısız (Instagram yayında): ${e.message}`);
+          hadError = true;
+        }
+      }
       moveToPublished(p, result);
-      log(`✅ ${tag} yayınlandı: ${result.permalink || result.media_id}`);
       done++;
     } catch (e) {
       log(`❌ ${tag} başarısız: ${e.message}`);
@@ -180,4 +255,4 @@ async function main() {
   if (hadError) process.exitCode = 1; // GitHub, başarısız çalıştırmada e-posta bildirimi gönderir
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) main();

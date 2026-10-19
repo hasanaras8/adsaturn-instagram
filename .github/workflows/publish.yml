@@ -14,6 +14,10 @@ on:
         description: "Bu çalıştırmada en fazla kaç gönderi (normalde 1)"
         type: string
         default: "1"
+      threads_post:
+        description: "(İsteğe bağlı) published/ altındaki bir gönderiyi Threads'e gönder — klasör adı"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -32,6 +36,7 @@ jobs:
       GRAPH_HOST: ${{ vars.GRAPH_HOST || 'graph.facebook.com' }}
       PAUSED: ${{ vars.PAUSED || '0' }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
       MAX_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_posts || '1' }}
     steps:
       - uses: actions/checkout@v4
@@ -43,8 +48,21 @@ jobs:
         if: github.event.schedule == '17 6 * * 1' || github.event_name == 'workflow_dispatch'
         run: node scripts/check-token.mjs
 
+      - name: Threads anahtarını yenile (haftalık)
+        if: github.event.schedule == '17 6 * * 1' && env.THREADS_ACCESS_TOKEN != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          node scripts/threads-refresh.mjs "$RUNNER_TEMP/th"
+          if [ -n "$GH_TOKEN" ]; then gh secret set THREADS_ACCESS_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/th" && echo "🔐 Yeni Threads anahtarı kaydedildi"; else echo "::warning::GH_PAT tanımlı değil; yenilenen anahtar kaydedilemedi"; fi
+          rm -f "$RUNNER_TEMP/th"
+
+      - name: Eski bir gönderiyi Threads'e gönder
+        if: github.event_name == 'workflow_dispatch' && inputs.threads_post != '' && env.DRY_RUN != '1'
+        run: node scripts/threads-post.mjs "${{ inputs.threads_post }}"
+
       - name: Zamanı gelen onaylı gönderileri yayınla
-        if: github.event.schedule != '17 6 * * 1'
+        if: github.event.schedule != '17 6 * * 1' && inputs.threads_post == ''
         run: node scripts/publish.mjs
 
       - name: Durumu repoya kaydet

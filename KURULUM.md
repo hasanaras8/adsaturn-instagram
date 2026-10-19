@@ -120,3 +120,13 @@ queue/
 
 ## Anahtarı yenileme
 Sistem kullanıcısı token'ı süresizdir. Instagram şifresi değişirse veya izin kaldırılırsa geçersiz olur: 3. adımın 5. maddesinden yeni token al, GitHub'daki `IG_ACCESS_TOKEN`'ı güncelle.
+
+## Threads (eşzamanlı paylaşım)
+
+Her gönderi Instagram'da yayınlandıktan hemen sonra Threads'e de gider (`THREADS_ACCESS_TOKEN` tanımlıysa).
+
+- **Metin:** Threads en fazla 500 karakter kabul eder. `post.json` içine `"threads_text": "..."` yazılırsa o kullanılır; yoksa Instagram metninin ilk paragrafları + `adsaturn.com` otomatik alınır, hashtag'ler atılır.
+- **Bir gönderiyi Threads'e göndermemek için:** `"threads": false`.
+- **Threads hatası Instagram'ı etkilemez:** Instagram gönderisi yayında kalır, hata `result.json` içine yazılır ve GitHub e-posta ile bildirir.
+- **Eski bir gönderiyi Threads'e göndermek:** Actions → Instagram yayıncı → Run workflow → `threads_post` alanına `published/` altındaki klasör adını yaz, deneme modunu kapat.
+- **Anahtar:** Threads anahtarı 60 gün geçerlidir; her pazartesi otomatik yenilenir ve `GH_PAT` (yalnızca bu depo, Secrets: okuma-yazma yetkili ince ayarlı GitHub anahtarı) ile secret'a geri yazılır. Yenileme başarısız olursa Meta → Adsaturn Publisher → Kullanım alanları → Threads API → Ayarlar → **User Token Generator** ile yeni anahtar üretip `THREADS_ACCESS_TOKEN` secret'ını güncelle.

@@ -25,3 +25,16 @@ try {
   console.error(`❌ Anahtar/hesap hatası: ${e.message}\nAnahtarın süresi dolmuş olabilir — KURULUM.md 'Anahtarı yenileme' bölümüne bak.`);
   process.exit(1);
 }
+
+// Threads (tanımlıysa)
+const TH = process.env.THREADS_ACCESS_TOKEN;
+if (TH) {
+  try {
+    const j = await (await fetch(`https://graph.threads.net/v1.0/me?fields=username&access_token=${encodeURIComponent(TH)}`)).json();
+    if (j.error) throw new Error(j.error.message);
+    console.log(`✅ Threads bağlantısı çalışıyor: @${j.username}`);
+  } catch (e) {
+    console.error(`❌ Threads anahtarı hatası: ${e.message}`);
+    process.exitCode = 1;
+  }
+}
