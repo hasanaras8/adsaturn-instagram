@@ -13,6 +13,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { linkedinEnabled, publishLinkedIn } from "./linkedin.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const QUEUE = path.join(ROOT, "queue");
@@ -302,6 +303,16 @@ async function main() {
         } catch (e) {
           result.facebook = { error: e.message };
           log(`❌ ${tag} Facebook başarısız (Instagram yayında): ${e.message}`);
+          hadError = true;
+        }
+      }
+      if (linkedinEnabled() && m.linkedin !== false) {
+        try {
+          result.linkedin = await publishLinkedIn(p);
+          log(`💼 ${tag} LinkedIn: ${result.linkedin.permalink || result.linkedin.post_urn || result.linkedin.skipped}`);
+        } catch (e) {
+          result.linkedin = { error: e.message };
+          log(`❌ ${tag} LinkedIn başarısız (Instagram yayında): ${e.message}`);
           hadError = true;
         }
       }

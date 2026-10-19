@@ -25,7 +25,7 @@ on:
       backfill_platform:
         description: "Sonradan gönderme hedefi"
         type: choice
-        options: [threads, facebook]
+        options: [threads, facebook, linkedin]
         default: threads
 
 permissions:
@@ -46,6 +46,11 @@ jobs:
       PAUSED: ${{ vars.PAUSED || '0' }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+      LI_ORG_ID: ${{ vars.LI_ORG_ID || '79411880' }}
+      LI_ACCESS_TOKEN: ${{ secrets.LI_ACCESS_TOKEN }}
+      LI_REFRESH_TOKEN: ${{ secrets.LI_REFRESH_TOKEN }}
+      LI_CLIENT_ID: ${{ secrets.LI_CLIENT_ID }}
+      LI_CLIENT_SECRET: ${{ secrets.LI_CLIENT_SECRET }}
       FB_ENABLED: ${{ vars.FB_ENABLED || '1' }}
       MAX_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_posts || '1' }}
     steps:

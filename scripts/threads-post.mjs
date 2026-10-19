@@ -4,10 +4,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { publishThreads, publishFacebook } from "./publish.mjs";
+import { publishLinkedIn } from "./linkedin.mjs";
 
 // PLATFORM=facebook ise Facebook sayfasına, aksi halde Threads'e gönderir.
-const KEY = process.env.PLATFORM === "facebook" ? "facebook" : "threads";
-const send = KEY === "facebook" ? publishFacebook : publishThreads;
+const KEY = ["facebook", "linkedin"].includes(process.env.PLATFORM) ? process.env.PLATFORM : "threads";
+const send = { facebook: publishFacebook, linkedin: publishLinkedIn, threads: publishThreads }[KEY];
 
 // "all" verilirse Instagram'daki yayın sırasıyla (eskiden yeniye) Threads'te olmayan hepsi gönderilir.
 const arg = process.argv[2];
@@ -25,7 +26,7 @@ for (const id of ids) {
   const dir = path.join(PUB, id);
   if (!fs.existsSync(path.join(dir, "post.json"))) { console.error(`published/${id} bulunamadı`); process.exitCode = 1; continue; }
   const result = readRes(id);
-  if (result[KEY]?.media_id || result[KEY]?.post_id) { console.log(`↷ ${id} zaten ${KEY}`); continue; }
+  if (result[KEY]?.media_id || result[KEY]?.post_id || result[KEY]?.post_urn) { console.log(`↷ ${id} zaten ${KEY}`); continue; }
   if (Date.now() - started > 30 * 60 * 1000) { console.log(`⏱ süre doldu, ${id} ve sonrası bir sonraki çalıştırmada`); break; }
   const meta = JSON.parse(fs.readFileSync(path.join(dir, "post.json"), "utf8"));
   try {

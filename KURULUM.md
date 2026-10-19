@@ -130,3 +130,11 @@ Her gönderi Instagram'da yayınlandıktan hemen sonra Threads'e de gider (`THRE
 - **Threads hatası Instagram'ı etkilemez:** Instagram gönderisi yayında kalır, hata `result.json` içine yazılır ve GitHub e-posta ile bildirir.
 - **Eski bir gönderiyi Threads'e göndermek:** Actions → Instagram yayıncı → Run workflow → `threads_post` alanına `published/` altındaki klasör adını yaz, deneme modunu kapat.
 - **Anahtar:** Threads anahtarı 60 gün geçerlidir; her pazartesi otomatik yenilenir ve `GH_PAT` (yalnızca bu depo, Secrets: okuma-yazma yetkili ince ayarlı GitHub anahtarı) ile secret'a geri yazılır. Yenileme başarısız olursa Meta → Adsaturn Publisher → Kullanım alanları → Threads API → Ayarlar → **User Token Generator** ile yeni anahtar üretip `THREADS_ACCESS_TOKEN` secret'ını güncelle.
+
+## LinkedIn şirket sayfası (Adsaturn, kimlik 79411880)
+
+- Uygulama: LinkedIn Developers → "Adsaturn Publisher" (Client ID 77svmnkvpbm5i9), Adsaturn sayfasıyla doğrulandı.
+- Community Management API (Development Tier) başvurusu 20 Ekim 2026'da yapıldı; sonuç e-postayla gelir.
+- Onaydan sonra gereken secret'lar: `LI_CLIENT_ID`, `LI_CLIENT_SECRET`, `LI_REFRESH_TOKEN` (önerilen; her çalıştırmada yeni erişim anahtarı alınır) ya da geçici olarak `LI_ACCESS_TOKEN`.
+- Anahtar tanımlanınca her gönderi Instagram'dan sonra LinkedIn sayfasına da gider (`"linkedin": false` ile kapatılır, `linkedin_text` ile ayrı metin verilebilir).
+- Eski gönderiler: Run workflow → `threads_post: all`, `backfill_platform: linkedin`.
