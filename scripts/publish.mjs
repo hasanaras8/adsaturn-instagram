@@ -129,14 +129,24 @@ async function publish(p) {
 }
 
 // ---------- Threads ----------
-async function th(method, endpoint, params = {}) {
+async function th(method, endpoint, params = {}, attempt = 1) {
+  try { return await th1(method, endpoint, params); }
+  catch (e) {
+    if (attempt >= 3) throw e;
+    log(`↻ Threads ${endpoint} tekrar deneniyor (${attempt}): ${e.message}`);
+    await sleep(20000 * attempt);
+    return th(method, endpoint, params, attempt + 1);
+  }
+}
+
+async function th1(method, endpoint, params = {}) {
   const body = new URLSearchParams({ ...params, access_token: TH_TOKEN });
   const url = `${TH_HOST}/${endpoint}`;
   const res = method === "GET" ? await fetch(url + "?" + body) : await fetch(url, { method, body });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || json.error) {
     const e = json.error || {};
-    throw new Error(`Threads ${endpoint}: ${e.message || res.status} (code ${e.code ?? "-"})`);
+    throw new Error(`Threads ${endpoint}: ${e.message || res.status} (code ${e.code ?? "-"}, sub ${e.error_subcode ?? "-"}) ${e.error_user_msg || ""} [${params.media_type || ""} ${params.image_url ? params.image_url.split("/").slice(-2).join("/") : ""}]`);
   }
   return json;
 }
