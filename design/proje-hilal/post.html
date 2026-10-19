@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:CG;src:url(fonts/CG.ttf);font-weight:300 700}
+@font-face{font-family:CG;src:url(fonts/CG-It.ttf);font-weight:300 700;font-style:italic}
+@font-face{font-family:Man;src:url(fonts/Manrope.ttf);font-weight:200 800}
+:root{--linen:#efe5d6;--bronze:#9b6a2e;--bronze2:#c1914f;--velvet:#6e1420;--velvet2:#9a2433;--sage:#5d7a5f;--sage2:#7f9c80;--navy:#1d2a4d;--mustard:#c99a2e;--ink:#2b2018;--cream:#fbf6ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;font-family:Man;-webkit-font-smoothing:antialiased}
+.s{width:1080px;height:1350px;position:relative;overflow:hidden;color:var(--cream)}
+.in{position:absolute;inset:0;padding:84px;display:flex;flex-direction:column;z-index:5}
+.ey{font-size:23px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+h1,h2{font-family:CG;font-weight:500;line-height:1;letter-spacing:-.01em}
+h1{font-size:118px} h2{font-size:92px}
+em{font-style:italic}
+p{font-size:33px;line-height:1.45;max-width:860px;margin-top:26px}
+.pg{position:absolute;right:84px;top:88px;font-size:23px;font-weight:700;letter-spacing:.1em;z-index:6;opacity:.65}
+.alogo{width:190px}.alogo svg{width:100%;height:auto;display:block}
+/* velvet curtain panel */
+.curtain{position:absolute;top:0;bottom:0;width:250px;z-index:3;
+ background:repeating-linear-gradient(90deg,#4a0b13 0 18px,#8e1f2e 34px,#b23446 44px,#8e1f2e 54px,#4a0b13 72px);
+ box-shadow:0 0 60px rgba(0,0,0,.55)}
+.curtain::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 70%,rgba(0,0,0,.45))}
+.valance{position:absolute;left:0;right:0;top:0;height:70px;z-index:4;background:repeating-linear-gradient(90deg,#5a0e18 0 30px,#9a2433 45px,#5a0e18 60px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.valance::after{content:"";position:absolute;left:0;right:0;bottom:-18px;height:18px;background:radial-gradient(18px 18px at 30px 0,#7a1825 98%,transparent) 0 0/60px 18px repeat-x}
+.tieback{position:absolute;width:44px;height:16px;border-radius:10px;background:linear-gradient(#e2bf78,#a77a33);z-index:4;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+/* browser frame */
+.win{position:absolute;border-radius:18px;overflow:hidden;background:#111;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.win .bar{height:34px;background:#2a221c;display:flex;align-items:center;gap:9px;padding:0 16px}
+.win .bar i{width:12px;height:12px;border-radius:50%;background:#5b4c40}
+.win .bar span{margin-left:14px;font-size:15px;color:#c9b8a6;background:#3a2f27;border-radius:7px;padding:3px 14px}
+.win img{display:block;width:100%}
+.lab{position:absolute;z-index:6;font-size:22px;font-weight:700;letter-spacing:.14em;padding:10px 18px;border-radius:999px}
+/* phone */
+.phone{position:absolute;border-radius:54px;background:#0b0b0d;padding:12px;box-shadow:0 34px 80px rgba(0,0,0,.45),inset 0 0 0 2px #2b2b30}
+.phone .scr{width:100%;height:100%;border-radius:43px;overflow:hidden;position:relative}
+.phone .scr img{width:100%;display:block}
+.phone .scr::before{content:"";position:absolute;top:11px;left:50%;transform:translateX(-50%);width:30%;height:28px;border-radius:20px;background:#0b0b0d;z-index:2}
+/* swatch with pinked edge */
+.sw{position:absolute;background:#fff;padding:12px 12px 0;box-shadow:0 18px 40px rgba(0,0,0,.28);
+ -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/22px 100%}
+.sw img{display:block;width:100%;height:calc(100% - 66px);object-fit:cover}
+.sw b{display:block;font-family:CG;font-weight:600;font-size:36px;color:var(--ink);padding:10px 4px 0}
+.dots{display:flex;gap:14px;margin-top:30px}
+.dots i{width:54px;height:54px;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(255,255,255,.7),0 6px 14px rgba(0,0,0,.2)}
+.btn{margin-top:44px;align-self:flex-start;background:var(--ink);color:var(--cream);font-weight:700;font-size:36px;padding:26px 46px;border-radius:999px}
+</style></head><body>
+
+<!-- 1 COVER: stage curtains around the real room -->
+<section class="s" id="s1" style="background:url(hero-day.jpg) 42% center/cover">
+  <div class="valance"></div>
+  <div class="curtain" style="left:0;clip-path:polygon(0 0,100% 0,62% 62%,100% 100%,0 100%)"></div>
+  <div class="curtain" style="right:0;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,38% 62%)"></div>
+  <div class="tieback" style="left:136px;top:828px"></div><div class="tieback" style="right:136px;top:828px"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,12,8,0) 40%,rgba(20,12,8,.82) 78%);z-index:4"></div>
+  <div class="in" style="padding-top:110px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div class="alogo">ALOGO</div><span class="ey" style="color:#f0d39b">Proje</span></div>
+    <div style="margin-top:auto;text-align:center;display:flex;flex-direction:column;align-items:center">
+      <div class="ey" style="color:#f0d39b">Hilal Mefruşat · Ataşehir</div>
+      <h1 style="margin-top:22px">Perdeleri gerçekten<br><em style="color:#f0d39b">kapanan</em> bir site.</h1>
+      <p style="text-align:center;color:rgba(251,246,238,.88)">Bir perde mağazasının web sitesi, mağazanın vitrini gibi.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 2 DAY → NIGHT -->
+<section class="s" id="s2" style="background:radial-gradient(90% 60% at 50% 100%,#3a2a1e,#16100c 70%)">
+  <div class="pg">2 / 6</div>
+  <div class="in">
+    <div class="ey" style="color:var(--bronze2)">Gece modu</div>
+    <h2 style="margin-top:24px">Düğmeye basın,<br><em style="color:#f0d39b">akşam</em> olsun.</h2>
+    <p style="color:rgba(251,246,238,.82)">Güneşlikler kapanır, oda yavaşça kararır ve akşam ışıkları yanar. Gündüze dönünce perdeler yeniden açılır.</p>
+  </div>
+  <div class="win" style="left:84px;top:640px;width:700px"><div class="bar"><i></i><i></i><i></i><span>hilalmefrusat.com</span></div><img src="dt0.png"></div>
+  <div class="win" style="left:296px;top:880px;width:700px"><div class="bar"><i></i><i></i><i></i><span>hilalmefrusat.com</span></div><img src="dt7.png"></div>
+  <span class="lab" style="left:110px;top:600px;background:#f3e6c9;color:#3a2a1e">GÜNDÜZ</span>
+  <span class="lab" style="left:850px;top:1272px;background:#2b2140;color:#f0d39b">GECE</span>
+</section>
+
+<!-- 3 SEVEN TONES -->
+<section class="s" id="s3" style="background:var(--linen);color:var(--ink)">
+  <div class="pg">3 / 6</div>
+  <div class="in">
+    <div class="ey" style="color:var(--bronze)">Rengi odada deneyin</div>
+    <h2 style="margin-top:24px">Aynı oda,<br><em style="color:var(--velvet2)">yedi</em> farklı ton.</h2>
+    <div class="dots"><i style="background:#8a7660"></i><i style="background:#ddd0b8"></i><i style="background:#3d3f44"></i><i style="background:#26345e"></i><i style="background:#7d977a"></i><i style="background:#7a1c2a"></i><i style="background:#c6962d"></i></div>
+  </div>
+  <div style="position:absolute;left:84px;right:84px;top:640px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;z-index:5">
+    <figure style="grid-column:span 2;grid-row:span 2;position:relative"><img src="renk-bordo.jpg" style="width:100%;height:100%;object-fit:cover;border-radius:16px;display:block"><figcaption style="position:absolute;left:16px;bottom:16px;background:rgba(0,0,0,.6);color:#fff;font-size:22px;font-weight:700;padding:6px 14px;border-radius:999px">Bordo</figcaption></figure>
+    <figure style="position:relative"><img src="renk-lacivert.jpg" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;display:block"><figcaption style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:18px;font-weight:700;padding:4px 12px;border-radius:999px">Lacivert</figcaption></figure>
+    <figure style="position:relative"><img src="renk-adacayi.jpg" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;display:block"><figcaption style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:18px;font-weight:700;padding:4px 12px;border-radius:999px">Adaçayı</figcaption></figure>
+    <figure style="position:relative"><img src="renk-vizon.jpg" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;display:block"><figcaption style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:18px;font-weight:700;padding:4px 12px;border-radius:999px">Vizon</figcaption></figure>
+    <figure style="position:relative"><img src="renk-hardal.jpg" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;display:block"><figcaption style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:18px;font-weight:700;padding:4px 12px;border-radius:999px">Hardal</figcaption></figure>
+    <figure style="position:relative"><img src="renk-antrasit.jpg" style="width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:12px;display:block"><figcaption style="position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:18px;font-weight:700;padding:4px 12px;border-radius:999px">Antrasit</figcaption></figure>
+  </div>
+</section>
+
+<!-- 4 CURTAIN TYPES as fabric swatches -->
+<section class="s" id="s4" style="background:linear-gradient(165deg,var(--sage2),var(--sage) 60%,#46604a)">
+  <div class="pg">4 / 6</div>
+  <div class="in">
+    <div class="ey" style="color:#e8f0dc">Perde türleri</div>
+    <h2 style="margin-top:24px">Her pencereye<br>bir <em style="color:#f4e7c8">çözüm.</em></h2>
+    <p style="color:rgba(251,246,238,.88)">Her tür için ayrı sayfa: nasıl çalıştığı, nerede kullanıldığı, artıları.</p>
+  </div>
+  <div class="sw" style="left:70px;top:650px;width:300px;height:290px;transform:rotate(-4deg)"><img src="tul-1.jpg"><b>Tül</b></div>
+  <div class="sw" style="left:390px;top:630px;width:300px;height:290px;transform:rotate(2deg)"><img src="zebra-1.jpg"><b>Zebra</b></div>
+  <div class="sw" style="left:710px;top:655px;width:300px;height:290px;transform:rotate(-2deg)"><img src="stor-1.jpg"><b>Stor</b></div>
+  <div class="sw" style="left:90px;top:965px;width:300px;height:290px;transform:rotate(3deg)"><img src="fon-1.jpg"><b>Fon perde</b></div>
+  <div class="sw" style="left:400px;top:950px;width:300px;height:290px;transform:rotate(-3deg)"><img src="plise-1.jpg" style="object-position:center 30%"><b>Plise</b></div>
+  <div class="sw" style="left:705px;top:970px;width:300px;height:290px;transform:rotate(2deg)"><img src="ahsap-1.jpg"><b>Ahşap jaluzi</b></div>
+</section>
+
+<!-- 5 MOBILE -->
+<section class="s" id="s5" style="background:linear-gradient(165deg,#2c3c69,var(--navy) 60%,#121a33)">
+  <div class="pg">5 / 6</div>
+  <div class="in">
+    <div class="ey" style="color:#c9d5f2">Telefonda</div>
+    <h2 style="margin-top:24px">Cebinizde bir<br><em style="color:#f0d39b">perde mağazası.</em></h2>
+    <p style="color:rgba(251,246,238,.85)">Dört soruluk perde seçme testi, tek dokunuşla arama, WhatsApp ve yol tarifi. Ölçüyü mağaza yerinde alır.</p>
+  </div>
+  <div class="phone" style="left:70px;top:740px;width:290px;height:628px;transform:rotate(-4deg)"><div class="scr"><img src="ms_turler.png"></div></div>
+  <div class="phone" style="left:395px;top:690px;width:290px;height:628px;z-index:3"><div class="scr"><img src="ms_plan.png"></div></div>
+  <div class="phone" style="left:720px;top:740px;width:290px;height:628px;transform:rotate(4deg)"><div class="scr"><img src="ms_zebra.png"></div></div>
+</section>
+
+<!-- 6 CTA on mustard with fabric -->
+<section class="s" id="s6" style="background:linear-gradient(rgba(201,154,46,.86),rgba(176,128,30,.92)),url(perde-doku.jpg) center/cover;color:var(--ink)">
+  <div class="in">
+    <div class="alogo" style="color:var(--ink)">ALOGO</div>
+    <h2 style="margin-top:110px;font-size:100px">Mağazanızın da<br>böyle bir <em>vitrini</em><br>olsun.</h2>
+    <span class="btn">Ücretsiz site analizi</span>
+    <div style="font-size:32px;margin-top:26px;font-weight:700">adsaturn.com</div>
+    <div style="margin-top:auto;font-size:29px;font-weight:600">Siteyi gezin: <b style="font-weight:800">hilalmefrusat.com</b></div>
+  </div>
+</section>
+</body></html>
