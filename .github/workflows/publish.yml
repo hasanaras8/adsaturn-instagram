@@ -18,6 +18,10 @@ on:
         description: "(İsteğe bağlı) published/ altındaki gönderi(ler)i sonradan gönder — klasör adı veya all"
         type: string
         default: ""
+      fb_cover:
+        description: "(İsteğe bağlı) Facebook kapak fotoğrafı yap — depodaki görsel yolu"
+        type: string
+        default: ""
       backfill_platform:
         description: "Sonradan gönderme hedefi"
         type: choice
@@ -63,6 +67,10 @@ jobs:
           if [ -n "$GH_TOKEN" ]; then gh secret set THREADS_ACCESS_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/th" && echo "🔐 Yeni Threads anahtarı kaydedildi"; else echo "::warning::GH_PAT tanımlı değil; yenilenen anahtar kaydedilemedi"; fi
           rm -f "$RUNNER_TEMP/th"
 
+      - name: Facebook kapak fotoğrafı
+        if: github.event_name == 'workflow_dispatch' && inputs.fb_cover != '' && env.DRY_RUN != '1'
+        run: node scripts/fb-cover.mjs "${{ inputs.fb_cover }}"
+
       - name: Eski gönderileri sonradan gönder (Threads / Facebook)
         if: github.event_name == 'workflow_dispatch' && inputs.threads_post != '' && env.DRY_RUN != '1'
         env:
@@ -70,7 +78,7 @@ jobs:
         run: node scripts/threads-post.mjs "${{ inputs.threads_post }}"
 
       - name: Zamanı gelen onaylı gönderileri yayınla
-        if: github.event.schedule != '17 6 * * 1' && inputs.threads_post == ''
+        if: github.event.schedule != '17 6 * * 1' && inputs.threads_post == '' && inputs.fb_cover == ''
         run: node scripts/publish.mjs
 
       - name: Durumu repoya kaydet
