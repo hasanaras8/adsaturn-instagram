@@ -38,3 +38,18 @@ if (TH) {
     process.exitCode = 1;
   }
 }
+
+// Facebook sayfası (FB_ENABLED=1 ise)
+if (process.env.FB_ENABLED === "1") {
+  try {
+    const j = await get("me/accounts", "id,name,tasks,instagram_business_account");
+    const page = (j.data || []).find((x) => x.instagram_business_account?.id === IG);
+    if (!page) throw new Error(`Instagram'a bağlı sayfa görünmüyor (erişilen: ${(j.data || []).map((x) => x.name).join(", ") || "yok"})`);
+    const canPost = (page.tasks || []).includes("CREATE_CONTENT");
+    console.log(`${canPost ? "✅" : "❌"} Facebook sayfası: ${page.name}${canPost ? "" : " — içerik oluşturma yetkisi yok"}`);
+    if (!canPost) process.exitCode = 1;
+  } catch (e) {
+    console.error(`❌ Facebook sayfası hatası: ${e.message}`);
+    process.exitCode = 1;
+  }
+}

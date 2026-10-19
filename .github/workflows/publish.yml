@@ -15,9 +15,14 @@ on:
         type: string
         default: "1"
       threads_post:
-        description: "(İsteğe bağlı) published/ altındaki bir gönderiyi Threads'e gönder — klasör adı"
+        description: "(İsteğe bağlı) published/ altındaki gönderi(ler)i sonradan gönder — klasör adı veya all"
         type: string
         default: ""
+      backfill_platform:
+        description: "Sonradan gönderme hedefi"
+        type: choice
+        options: [threads, facebook]
+        default: threads
 
 permissions:
   contents: write
@@ -37,6 +42,7 @@ jobs:
       PAUSED: ${{ vars.PAUSED || '0' }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+      FB_ENABLED: ${{ vars.FB_ENABLED || '0' }}
       MAX_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_posts || '1' }}
     steps:
       - uses: actions/checkout@v4
@@ -57,8 +63,10 @@ jobs:
           if [ -n "$GH_TOKEN" ]; then gh secret set THREADS_ACCESS_TOKEN --repo "$GITHUB_REPOSITORY" < "$RUNNER_TEMP/th" && echo "🔐 Yeni Threads anahtarı kaydedildi"; else echo "::warning::GH_PAT tanımlı değil; yenilenen anahtar kaydedilemedi"; fi
           rm -f "$RUNNER_TEMP/th"
 
-      - name: Eski bir gönderiyi Threads'e gönder
+      - name: Eski gönderileri sonradan gönder (Threads / Facebook)
         if: github.event_name == 'workflow_dispatch' && inputs.threads_post != '' && env.DRY_RUN != '1'
+        env:
+          PLATFORM: ${{ inputs.backfill_platform }}
         run: node scripts/threads-post.mjs "${{ inputs.threads_post }}"
 
       - name: Zamanı gelen onaylı gönderileri yayınla

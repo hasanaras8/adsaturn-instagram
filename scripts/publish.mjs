@@ -128,6 +128,57 @@ async function publish(p) {
   return { media_id: pub.id, permalink };
 }
 
+// ---------- Facebook Sayfası ----------
+// FB_ENABLED=1 ise Instagram anahtarıyla (sistem kullanıcısı) bağlı Facebook sayfasını bulur ve aynı gönderiyi oraya da atar.
+// Gereken izin: pages_manage_posts (+ pages_show_list, pages_read_engagement).
+const FB_ENABLED = process.env.FB_ENABLED === "1";
+let fbPage = null;
+export async function fbPageInfo() {
+  if (fbPage) return fbPage;
+  const j = await api("GET", "me/accounts", { fields: "id,name,access_token,instagram_business_account", limit: "100" });
+  const pages = j.data || [];
+  const page = pages.find((x) => x.instagram_business_account?.id === IG) || (process.env.FB_PAGE_ID && pages.find((x) => x.id === process.env.FB_PAGE_ID));
+  if (!page) throw new Error(`Instagram hesabına bağlı Facebook sayfası bulunamadı (erişilen sayfalar: ${pages.map((x) => x.name).join(", ") || "yok"})`);
+  fbPage = page;
+  return page;
+}
+
+async function fb(method, endpoint, params, token) {
+  const url = new URL(`https://graph.facebook.com/${VER}/${endpoint}`);
+  const body = new URLSearchParams({ ...params, access_token: token });
+  const res = method === "GET" ? await fetch(url + "?" + body) : await fetch(url, { method, body });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok || json.error) {
+    const e = json.error || {};
+    throw new Error(`Facebook ${endpoint}: ${e.message || res.status} (code ${e.code ?? "-"}, sub ${e.error_subcode ?? "-"}) ${e.error_user_msg || ""}`);
+  }
+  return json;
+}
+
+// Facebook'ta hashtag'ler çalışır ama Instagram kadar değil; metin olduğu gibi gider.
+// post.json'da facebook_text varsa o kullanılır.
+export async function publishFacebook(p) {
+  const m = p.meta;
+  const page = await fbPageInfo();
+  const T = page.access_token;
+  const message = m.facebook_text || m.caption || "";
+  let postId;
+  if (m.type === "carousel" || m.type === "image") {
+    const ids = [];
+    for (const f of m.media) ids.push((await fb("POST", `${page.id}/photos`, { url: urlFor(p, f), published: "false" }, T)).id);
+    const params = { message };
+    ids.forEach((id, i) => (params[`attached_media[${i}]`] = JSON.stringify({ media_fbid: id })));
+    postId = (await fb("POST", `${page.id}/feed`, params, T)).id;
+  } else if (m.type === "reel") {
+    postId = (await fb("POST", `${page.id}/videos`, { file_url: urlFor(p, m.media[0]), description: message }, T)).id;
+  } else {
+    return { skipped: `Facebook'ta ${m.type} desteklenmiyor` };
+  }
+  let permalink = null;
+  try { permalink = (await fb("GET", postId, { fields: "permalink_url" }, T)).permalink_url; } catch {}
+  return { post_id: postId, permalink, page: page.name };
+}
+
 // ---------- Threads ----------
 async function th(method, endpoint, params = {}, attempt = 1) {
   try { return await th1(method, endpoint, params); }
@@ -244,6 +295,16 @@ async function main() {
       log(`🚀 ${tag} yayınlanıyor…`);
       const result = await publish(p);
       log(`✅ ${tag} Instagram'da yayınlandı: ${result.permalink || result.media_id}`);
+      if (FB_ENABLED && m.facebook !== false) {
+        try {
+          result.facebook = await publishFacebook(p);
+          log(`📘 ${tag} Facebook: ${result.facebook.permalink || result.facebook.post_id || result.facebook.skipped}`);
+        } catch (e) {
+          result.facebook = { error: e.message };
+          log(`❌ ${tag} Facebook başarısız (Instagram yayında): ${e.message}`);
+          hadError = true;
+        }
+      }
       if (TH_TOKEN && m.threads !== false) {
         try {
           result.threads = await publishThreads(p);
