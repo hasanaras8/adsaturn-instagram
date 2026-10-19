@@ -161,7 +161,7 @@ export function threadsText(m) {
   let out = "";
   for (const para of paras) {
     const next = out ? out + "\n\n" + para : para;
-    if ((next + tail).length > 500) break;
+    if ((next + tail).length > 500) continue;
     out = next;
   }
   if (!out) out = (paras[0] || "").slice(0, 500 - tail.length - 1) + "…";
