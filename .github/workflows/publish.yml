@@ -42,7 +42,7 @@ jobs:
       PAUSED: ${{ vars.PAUSED || '0' }}
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
-      FB_ENABLED: ${{ vars.FB_ENABLED || '0' }}
+      FB_ENABLED: ${{ vars.FB_ENABLED || '1' }}
       MAX_PER_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.max_posts || '1' }}
     steps:
       - uses: actions/checkout@v4
