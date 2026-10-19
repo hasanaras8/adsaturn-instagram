@@ -1,7 +1,7 @@
 {
   "type": "image",
   "publish_at": "2026-12-31T11:00:00+03:00",
-  "approved": true,
+  "approved": false,
   "media": [
     "1.jpg"
   ],
