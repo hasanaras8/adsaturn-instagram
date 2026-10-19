@@ -23,7 +23,7 @@ const VER = process.env.GRAPH_VERSION || "v23.0";
 const IG = process.env.IG_USER_ID;
 const TOKEN = process.env.IG_ACCESS_TOKEN;
 const NOW = process.env.NOW ? new Date(process.env.NOW) : new Date();
-const MAX_PER_RUN = 1; // her çalıştırmada en fazla 1 gönderi (yanlışlıkla toplu paylaşımı önler)
+const MAX_PER_RUN = Math.max(1, Math.min(15, parseInt(process.env.MAX_PER_RUN || '1', 10) || 1)); // varsayılan 1: yanlışlıkla toplu paylaşımı önler
 
 const repo = process.env.GITHUB_REPOSITORY || "OWNER/REPO";
 const branch = process.env.GITHUB_REF_NAME || "main";
