@@ -89,7 +89,7 @@ function validate(p) {
   for (const f of m.media || []) {
     if (!fs.existsSync(path.join(p.dir, f))) errs.push(`dosya yok: ${f}`);
     const ext = path.extname(f).toLowerCase();
-    if (m.type !== "reel" && !(m.type === "story" && [".mp4", ".mov"].includes(ext)) && ![".jpg", ".jpeg"].includes(ext)) errs.push(`görseller JPEG olmalı: ${f}`);
+    if (m.type !== "reel" && !(["story", "carousel"].includes(m.type) && [".mp4", ".mov"].includes(ext)) && ![".jpg", ".jpeg"].includes(ext)) errs.push(`görseller JPEG olmalı: ${f}`);
   }
   if ((m.caption || "").length > 2200) errs.push("caption 2200 karakteri aşıyor");
   if (((m.caption || "").match(/#/g) || []).length > 30) errs.push("en fazla 30 hashtag");
@@ -108,7 +108,10 @@ async function publish(p) {
   } else if (m.type === "carousel") {
     const children = [];
     for (const f of m.media) {
-      const c = await api("POST", `${IG}/media`, { image_url: urlFor(p, f), is_carousel_item: "true" });
+      const c = isVideo(f)
+        ? await api("POST", `${IG}/media`, { media_type: "VIDEO", video_url: urlFor(p, f), is_carousel_item: "true" })
+        : await api("POST", `${IG}/media`, { image_url: urlFor(p, f), is_carousel_item: "true" });
+      if (isVideo(f)) await waitReady(c.id, `carousel videosu ${f}`);
       children.push(c.id);
     }
     creation = await api("POST", `${IG}/media`, { media_type: "CAROUSEL", children: children.join(","), caption });
@@ -166,7 +169,7 @@ export async function publishFacebook(p) {
   let postId;
   if (m.type === "carousel" || m.type === "image") {
     const ids = [];
-    for (const f of m.media) ids.push((await fb("POST", `${page.id}/photos`, { url: urlFor(p, f), published: "false" }, T)).id);
+    for (const f of m.media.map((x) => (isVideo(x) ? x.replace(/\.(mp4|mov)$/i, ".jpg") : x))) ids.push((await fb("POST", `${page.id}/photos`, { url: urlFor(p, f), published: "false" }, T)).id);
     const params = { message };
     ids.forEach((id, i) => (params[`attached_media[${i}]`] = JSON.stringify({ media_fbid: id })));
     postId = (await fb("POST", `${page.id}/feed`, params, T)).id;
@@ -236,7 +239,7 @@ export async function publishThreads(p) {
   let creation;
   if (m.type === "carousel") {
     const children = [];
-    for (const f of m.media) children.push((await th("POST", "me/threads", { media_type: "IMAGE", image_url: urlFor(p, f), is_carousel_item: "true" })).id);
+    for (const f of m.media) children.push((await th("POST", "me/threads", isVideo(f) ? { media_type: "VIDEO", video_url: urlFor(p, f), is_carousel_item: "true" } : { media_type: "IMAGE", image_url: urlFor(p, f), is_carousel_item: "true" })).id);
     for (const c of children) await thWait(c);
     creation = await th("POST", "me/threads", { media_type: "CAROUSEL", children: children.join(","), text });
   } else if (m.type === "image") {

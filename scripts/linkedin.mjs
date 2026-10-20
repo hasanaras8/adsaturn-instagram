@@ -74,7 +74,7 @@ export async function publishLinkedIn(p) {
   if (!["image", "carousel"].includes(m.type)) return { skipped: `LinkedIn'de ${m.type} şimdilik desteklenmiyor` };
   const owner = `urn:li:organization:${process.env.LI_ORG_ID}`;
   const ids = [];
-  for (const f of m.media) ids.push(await uploadImage(path.join(p.dir, f), owner));
+  for (const f of m.media.map((x) => x.replace(/\.(mp4|mov)$/i, ".jpg"))) ids.push(await uploadImage(path.join(p.dir, f), owner));
   const text = (m.linkedin_text || m.caption || "").slice(0, 2900);
   const content = ids.length > 1
     ? { multiImage: { images: ids.map((id) => ({ id, altText: (m.alt_text || "").slice(0, 120) })) } }
