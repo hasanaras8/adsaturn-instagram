@@ -114,7 +114,7 @@ async function publish(p) {
     creation = await api("POST", `${IG}/media`, { media_type: "CAROUSEL", children: children.join(","), caption });
     await waitReady(creation.id, "carousel");
   } else if (m.type === "reel") {
-    creation = await api("POST", `${IG}/media`, { media_type: "REELS", video_url: urlFor(p, m.media[0]), caption, share_to_feed: "true" });
+    creation = await api("POST", `${IG}/media`, { media_type: "REELS", video_url: urlFor(p, m.media[0]), caption, share_to_feed: "true", ...(m.thumb_offset ? { thumb_offset: String(m.thumb_offset) } : {}) });
     await waitReady(creation.id, "reel");
   } else if (m.type === "story") {
     const f = m.media[0];
