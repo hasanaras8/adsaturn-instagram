@@ -1,7 +1,7 @@
 {
   "type": "carousel",
-  "publish_at": "2026-11-11T11:00:00+03:00",
-  "approved": false,
+  "publish_at": "2026-11-10T23:15:00+03:00",
+  "approved": true,
   "media": [
     "1.jpg",
     "2.jpg",
@@ -10,5 +10,6 @@
     "5.jpg"
   ],
   "caption": "ChatGPT artık işletmelere kendi panelini veriyor.\n\nOpenAI'ın yeni Business Hub'ı ile işletmenizi sahiplenebilir, bilgilerinizi güncelleyebilir ve ChatGPT'de kaç kez anıldığınızı görebilirsiniz. Müşteri sorularını sizin bilgilerinizle cevaplayan Business Agent ise şimdilik yalnızca ABD'de.\n\nAdım adım nasıl yapılacağını blogumuzda anlattık: adsaturn.com/blog\n\nProfilinizi birlikte kuralım. Ücretsiz dijital analiz için profildeki bağlantıdan bize ulaşın.\n\n#chatgpt #yapayzeka #dijitalpazarlama #adsaturn",
-  "threads_text": "ChatGPT artık işletmelere kendi panelini veriyor. OpenAI'ın yeni Business Hub'ı ile işletmenizi sahiplenebilir, bilgilerinizi güncelleyebilir ve ChatGPT'de kaç kez anıldığınızı görebilirsiniz.\n\nAdım adım rehber: adsaturn.com/chatgpt-isletme-profili-nasil-sahiplenilir-business-hub-rehberi/"
+  "threads_text": "ChatGPT artık işletmelere kendi panelini veriyor. OpenAI'ın yeni Business Hub'ı ile işletmenizi sahiplenebilir, bilgilerinizi güncelleyebilir ve ChatGPT'de kaç kez anıldığınızı görebilirsiniz.\n\nAdım adım rehber: adsaturn.com/chatgpt-isletme-profili-nasil-sahiplenilir-business-hub-rehberi/",
+  "alt_text": "ChatGPT'de sahiplenilmiş bir işletme profili, Business Hub bilgi güncelleme ekranı, içgörü paneli ve Business Agent sohbet örneği."
 }
