@@ -439,4 +439,20 @@ dict(date='2026-12-31T11:00', slug='yeni-yil', pillar='arama', label='',
  caption="""2027'de sizi arayan müşterilerle buluşmanız dileğiyle. Yeni yılınız kutlu olsun.
 
 #yeniyıl #2027 #adsaturn"""),
+# ───────────── EK: 10.11.2026 OpenAI duyurusu ─────────────
+dict(date='2026-11-11T11:00', slug='chatgpt-isletme-profili', pillar='yz', label='Yapay zekâ · ChatGPT',
+ slides=[
+  dict(t='cover', h='ChatGPT’de işletmeniz <em>nasıl</em> görünüyor?', sub='Artık bunu siz yönetebilirsiniz'),
+  dict(t='point', k='01', h='İşletmenizi sahiplenin', p='OpenAI’ın yeni Business Hub’ında işletmenizi doğrulayıp adres, çalışma saatleri ve hizmet bilgilerinizi kendiniz güncelleyebilirsiniz.'),
+  dict(t='point', k='02', h='Ne kadar anıldığınızı görün', p='ChatGPT cevaplarında kaç kez geçtiğinizi ve sitenize kaç tıklama geldiğini panelden izleyin.'),
+  dict(t='point', k='03', h='Business Agent yolda', p='Müşteri sorularını sizin bilgilerinizle cevaplayan asistan şimdilik yalnızca ABD’de. Hazırlığı bugünden yapmak gerekiyor.'),
+  dict(t='cta', h='Profilinizi <em>birlikte</em> kuralım.', btn='Ücretsiz dijital analiz'),
+ ],
+ caption="""ChatGPT artık işletmelere kendi panelini veriyor.
+
+OpenAI'ın yeni Business Hub'ı ile işletmenizi sahiplenebilir, bilgilerinizi güncelleyebilir ve ChatGPT'de kaç kez anıldığınızı görebilirsiniz. Müşteri sorularını sizin bilgilerinizle cevaplayan Business Agent ise şimdilik yalnızca ABD'de.
+
+Adım adım nasıl yapılacağını blogumuzda anlattık: adsaturn.com/blog
+
+Profilinizi birlikte kuralım. """ + LINK),
 ]
